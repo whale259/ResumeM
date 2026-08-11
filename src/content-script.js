@@ -59,18 +59,25 @@
       </div>
 
       <div class="toolbar">
-        <label class="file-btn">
-          上传 PDF
-          <input class="pdf-input" type="file" accept="application/pdf,.pdf" hidden />
-        </label>
-        <label class="file-btn">
-          导入 MD
-          <input class="md-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
-        </label>
-        <button class="btn primary" data-action="optimize">AI 整理</button>
-        <button class="btn" data-action="copy">复制全部</button>
-        <button class="btn" data-action="export">导出 MD</button>
-        <button class="btn danger" data-action="clear-all">清空数据</button>
+        <div class="menu-row">
+          <label class="file-btn">
+            上传 PDF
+            <input class="pdf-input" type="file" accept="application/pdf,.pdf" hidden />
+          </label>
+          <label class="file-btn">
+            导入 MD
+            <input class="md-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
+          </label>
+          <button class="btn primary" data-action="optimize">AI 整理</button>
+          <div class="more-wrap">
+            <button class="btn" data-action="more" aria-haspopup="menu" aria-expanded="false">更多</button>
+            <div class="more-menu" hidden>
+              <button class="btn" data-action="copy">复制全部</button>
+              <button class="btn" data-action="export">导出 MD</button>
+              <button class="btn danger" data-action="clear-all">清空数据</button>
+            </div>
+          </div>
+        </div>
         <div class="search">
           <input class="search-input" type="search" placeholder="搜索字段，如 实习 / 家庭住址" />
         </div>
@@ -115,6 +122,8 @@
   const mdInput = $(".md-input");
   const keyInput = $(".key-input");
   const modal = $(".modal");
+  const moreMenu = $(".more-menu");
+  const moreButton = $('[data-action="more"]');
 
   init();
 
@@ -165,6 +174,14 @@
 
     if (!action) return;
 
+    if (action === "more") {
+      toggleMoreMenu();
+      return;
+    }
+
+    moreMenu.hidden = true;
+    moreButton.setAttribute("aria-expanded", "false");
+
     if (action === "close") togglePanel(false);
     if (action === "settings") settings.hidden = !settings.hidden;
     if (action === "save-key") await saveDeepSeekKey();
@@ -173,6 +190,11 @@
     if (action === "export") exportMarkdown();
     if (action === "clear-all") await clearAllData();
     if (action === "optimize") await optimizeWithDeepSeek();
+  }
+
+  function toggleMoreMenu() {
+    moreMenu.hidden = !moreMenu.hidden;
+    moreButton.setAttribute("aria-expanded", String(!moreMenu.hidden));
   }
 
   function handleEditorInput() {

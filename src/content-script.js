@@ -510,7 +510,7 @@
   }
 
   async function clearAllData() {
-    const confirmed = window.confirm("确认清空 ResumeM 的 Markdown 内容？DeepSeek key 会保留。");
+    const confirmed = window.confirm("确认清空 ResumeM 的 Markdown 内容？");
     if (!confirmed) return;
 
     state.markdown = DEFAULT_MARKDOWN;

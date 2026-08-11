@@ -69,14 +69,12 @@
             <input class="md-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
           </label>
           <button class="btn primary" data-action="optimize">AI 整理</button>
-          <div class="more-wrap">
-            <button class="btn" data-action="more" aria-haspopup="menu" aria-expanded="false">更多</button>
-            <div class="more-menu" hidden>
-              <button class="btn" data-action="copy">复制全部</button>
-              <button class="btn" data-action="export">导出 MD</button>
-              <button class="btn danger" data-action="clear-all">清空数据</button>
-            </div>
-          </div>
+          <button class="btn" data-action="copy">复制全部</button>
+          <button class="btn" data-action="export">导出 MD</button>
+          <button class="menu-toggle" data-action="more" aria-label="展开更多操作" aria-expanded="false">▾</button>
+        </div>
+        <div class="overflow-row" hidden>
+          <button class="btn danger" data-action="clear-all">清空数据</button>
         </div>
         <div class="search">
           <input class="search-input" type="search" placeholder="搜索字段，如 实习 / 家庭住址" />
@@ -122,7 +120,7 @@
   const mdInput = $(".md-input");
   const keyInput = $(".key-input");
   const modal = $(".modal");
-  const moreMenu = $(".more-menu");
+  const overflowRow = $(".overflow-row");
   const moreButton = $('[data-action="more"]');
 
   init();
@@ -179,8 +177,7 @@
       return;
     }
 
-    moreMenu.hidden = true;
-    moreButton.setAttribute("aria-expanded", "false");
+    closeOverflowRow();
 
     if (action === "close") togglePanel(false);
     if (action === "settings") settings.hidden = !settings.hidden;
@@ -193,8 +190,18 @@
   }
 
   function toggleMoreMenu() {
-    moreMenu.hidden = !moreMenu.hidden;
-    moreButton.setAttribute("aria-expanded", String(!moreMenu.hidden));
+    const willOpen = overflowRow.hidden;
+    overflowRow.hidden = !willOpen;
+    moreButton.textContent = willOpen ? "▴" : "▾";
+    moreButton.setAttribute("aria-label", willOpen ? "收起更多操作" : "展开更多操作");
+    moreButton.setAttribute("aria-expanded", String(willOpen));
+  }
+
+  function closeOverflowRow() {
+    overflowRow.hidden = true;
+    moreButton.textContent = "▾";
+    moreButton.setAttribute("aria-label", "展开更多操作");
+    moreButton.setAttribute("aria-expanded", "false");
   }
 
   function handleEditorInput() {

@@ -64,6 +64,7 @@
         </label>
         <button class="btn primary" data-action="optimize">AI 整理</button>
         <button class="btn" data-action="copy">复制全部</button>
+        <button class="btn" data-action="export">导出 MD</button>
         <button class="btn danger" data-action="clear-all">清空数据</button>
         <div class="search">
           <input class="search-input" type="search" placeholder="搜索字段，如 实习 / 家庭住址" />
@@ -162,6 +163,7 @@
     if (action === "save-key") await saveDeepSeekKey();
     if (action === "clear-key") await clearDeepSeekKey();
     if (action === "copy") await copyMarkdown();
+    if (action === "export") exportMarkdown();
     if (action === "clear-all") await clearAllData();
     if (action === "optimize") await optimizeWithDeepSeek();
   }
@@ -445,6 +447,23 @@
   async function copyMarkdown() {
     await navigator.clipboard.writeText(editor.value);
     setStatus("已复制全部 Markdown");
+  }
+
+  function exportMarkdown() {
+    const markdown = editor.value || "";
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `resumemd-${date}.md`;
+    link.style.display = "none";
+    document.documentElement.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setStatus(`已导出 resumemd-${date}.md`);
   }
 
   async function optimizeWithDeepSeek() {

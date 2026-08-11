@@ -70,8 +70,8 @@
             <input class="md-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
           </label>
           <button class="btn primary" data-action="optimize">AI 整理</button>
-          <button class="btn" data-action="copy">复制全部</button>
           <button class="btn" data-action="export">导出 MD</button>
+          <button class="btn" data-action="copy">复制全部</button>
           <button class="menu-toggle" data-action="more" aria-label="展开更多操作" aria-expanded="false">▾</button>
         </div>
         <div class="overflow-row" hidden>

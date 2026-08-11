@@ -9,7 +9,7 @@ search, edit, and copy resume information while filling online applications.
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
 3. Choose **Load unpacked**.
-4. Select this project folder: `D:\桌面\ResumeM`.
+4. Select this project folder: `ResumeM`.
 
 ## First Version Features
 
@@ -32,6 +32,3 @@ search, edit, and copy resume information while filling online applications.
 - Automatic form filling is intentionally deferred.
 - PDF parsing quality depends on the source PDF layout, so manual editing remains
   part of the first-version workflow.
-- `npm audit` currently reports a `pdfjs-dist` advisory without an available npm
-  fix. The prototype disables PDF.js eval support and is intended for user-owned
-  resume PDFs.

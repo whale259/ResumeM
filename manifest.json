@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "ResumeMd",
+  "version": "0.1.0",
+  "description": "Floating Markdown resume helper for autumn recruitment application forms.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://api.deepseek.com/*"],
+  "action": {
+    "default_title": "Open ResumeMd"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content.css",
+        "vendor/pdf.mjs",
+        "vendor/pdf.worker.mjs",
+        "vendor/cmaps/*",
+        "vendor/standard_fonts/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

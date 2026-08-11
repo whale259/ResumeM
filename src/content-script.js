@@ -22,6 +22,7 @@
     panelOpen: false,
     pendingImport: "",
     pendingImportSource: "",
+    activeMatchIndex: 0,
     lastSavedAt: null,
     saveTimer: null
   };
@@ -88,7 +89,11 @@
 
       <footer class="statusbar">
         <span class="status">准备就绪</span>
-        <span class="match-count">0 个匹配</span>
+        <div class="search-nav" hidden>
+          <button class="nav-btn" data-action="prev-match" title="上一个匹配" aria-label="上一个匹配">↑</button>
+          <button class="nav-btn" data-action="next-match" title="下一个匹配" aria-label="下一个匹配">↓</button>
+          <span class="match-count">0 / 0 results</span>
+        </div>
       </footer>
     </section>
 
@@ -115,6 +120,7 @@
   const backdrop = $(".backdrop");
   const status = $(".status");
   const matchCount = $(".match-count");
+  const searchNav = $(".search-nav");
   const searchInput = $(".search-input");
   const pdfInput = $(".pdf-input");
   const mdInput = $(".md-input");
@@ -149,7 +155,7 @@
     shadow.addEventListener("click", handleActionClick);
     editor.addEventListener("input", handleEditorInput);
     editor.addEventListener("scroll", syncScroll);
-    searchInput.addEventListener("input", renderHighlights);
+    searchInput.addEventListener("input", handleSearchInput);
     pdfInput.addEventListener("change", handlePdfUpload);
     mdInput.addEventListener("change", handleMarkdownUpload);
   }
@@ -174,6 +180,11 @@
 
     if (action === "more") {
       toggleMoreMenu();
+      return;
+    }
+
+    if (action === "prev-match" || action === "next-match") {
+      moveSearchMatch(action === "next-match" ? 1 : -1);
       return;
     }
 
@@ -207,6 +218,11 @@
   function handleEditorInput() {
     state.markdown = editor.value;
     scheduleSaveMarkdown();
+    renderHighlights();
+  }
+
+  function handleSearchInput() {
+    state.activeMatchIndex = 0;
     renderHighlights();
   }
 
@@ -502,6 +518,7 @@
     editor.value = state.markdown;
     keyInput.value = "";
     searchInput.value = "";
+    state.activeMatchIndex = 0;
     await chrome.storage.local.remove(Object.values(STORAGE_KEYS));
     renderHighlights();
     setStatus("本地数据已清空");
@@ -612,29 +629,55 @@ ${markdown}`
 
     if (!query) {
       backdrop.innerHTML = escapedText || "\n";
-      matchCount.textContent = "0 个匹配";
+      searchNav.hidden = true;
+      matchCount.textContent = "0 / 0 results";
       syncScroll();
       return;
     }
 
     const regex = new RegExp(escapeRegExp(query), "gi");
     const matches = [...text.matchAll(regex)];
-    backdrop.innerHTML = escapedText.replace(regex, (match) => `<mark>${escapeHtml(match)}</mark>`);
-    matchCount.textContent = `${matches.length} 个匹配`;
+    state.activeMatchIndex = matches.length
+      ? Math.min(state.activeMatchIndex, matches.length - 1)
+      : 0;
+
+    let renderedIndex = 0;
+    backdrop.innerHTML = escapedText.replace(regex, (match) => {
+      const isActive = renderedIndex === state.activeMatchIndex;
+      renderedIndex += 1;
+      return `<mark class="${isActive ? "active-match" : ""}">${escapeHtml(match)}</mark>`;
+    });
+
+    searchNav.hidden = matches.length <= 1;
+    matchCount.textContent = matches.length
+      ? `${state.activeMatchIndex + 1} / ${matches.length} results`
+      : "0 / 0 results";
 
     if (matches[0]) {
-      scrollEditorToFirstMatch();
+      scrollEditorToActiveMatch();
       searchInput.focus();
     }
 
     syncScroll();
   }
 
-  function scrollEditorToFirstMatch() {
-    const firstMatch = backdrop.querySelector("mark");
-    if (!firstMatch) return;
+  function moveSearchMatch(direction) {
+    const query = searchInput.value.trim();
+    if (!query) return;
 
-    const targetTop = Math.max(0, firstMatch.offsetTop - editor.clientHeight * 0.35);
+    const matches = [...editor.value.matchAll(new RegExp(escapeRegExp(query), "gi"))];
+    if (!matches.length) return;
+
+    state.activeMatchIndex = (state.activeMatchIndex + direction + matches.length) % matches.length;
+    renderHighlights();
+    searchInput.focus();
+  }
+
+  function scrollEditorToActiveMatch() {
+    const activeMatch = backdrop.querySelector("mark.active-match") || backdrop.querySelector("mark");
+    if (!activeMatch) return;
+
+    const targetTop = Math.max(0, activeMatch.offsetTop - editor.clientHeight * 0.35);
     editor.scrollTop = targetTop;
     backdrop.scrollTop = targetTop;
   }

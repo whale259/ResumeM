@@ -264,6 +264,11 @@ mark {
   box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.45);
 }
 
+mark.active-match {
+  background: rgba(123, 97, 255, 0.52);
+  box-shadow: 0 0 0 1px rgba(123, 97, 255, 0.72);
+}
+
 .settings {
   flex: 0 0 auto;
   display: grid;
@@ -284,6 +289,39 @@ mark {
   justify-content: space-between;
   border-top: 1px solid var(--rm-line);
   border-bottom: 0;
+}
+
+.search-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--rm-muted);
+}
+
+.search-nav[hidden] {
+  display: none;
+}
+
+.nav-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--rm-muted);
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rm-ink);
+}
+
+.match-count {
+  min-width: 78px;
+  text-align: right;
 }
 
 .modal {

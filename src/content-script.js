@@ -37,7 +37,7 @@
 
   const app = document.createElement("div");
   app.innerHTML = `
-    <button class="launcher" title="打开 ResumeM" aria-label="打开 ResumeM">MD</button>
+    <button class="launcher" title="打开 ResumeM" aria-label="打开 ResumeM">RM</button>
     <section class="panel" hidden aria-label="ResumeM 悬浮窗">
       <header class="topbar">
         <div class="brand">

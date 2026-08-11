@@ -453,6 +453,7 @@
   async function saveDeepSeekKey() {
     state.deepseekKey = keyInput.value.trim();
     await chrome.storage.local.set({ [STORAGE_KEYS.deepseekKey]: state.deepseekKey });
+    settings.hidden = true;
     setStatus(state.deepseekKey ? "DeepSeek key 已保存" : "DeepSeek key 为空");
   }
 

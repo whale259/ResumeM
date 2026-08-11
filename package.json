@@ -2,7 +2,7 @@
   "name": "resumemd",
   "version": "0.1.0",
   "private": true,
-  "description": "ResumeMd Chrome extension prototype",
+  "description": "ResumeM Chrome extension prototype",
   "scripts": {
     "vendor:pdfjs": "node scripts/copy-pdfjs.mjs",
     "check": "node --check src/content-script.js && node --check src/background.js && node --check scripts/copy-pdfjs.mjs"

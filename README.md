@@ -1,6 +1,6 @@
-# ResumeMd
+# ResumeM
 
-ResumeMd is a local Chrome extension prototype for autumn recruitment application
+ResumeM is a local Chrome extension prototype for autumn recruitment application
 forms. It injects a dark floating Markdown panel into web pages so you can keep,
 search, edit, and copy resume information while filling online applications.
 
@@ -28,7 +28,7 @@ search, edit, and copy resume information while filling online applications.
 
 ## Notes
 
-- ResumeMd does not include a public DeepSeek key.
+- ResumeM does not include a public DeepSeek key.
 - Automatic form filling is intentionally deferred.
 - PDF parsing quality depends on the source PDF layout, so manual editing remains
   part of the first-version workflow.

@@ -11,7 +11,7 @@
   const DEFAULT_MARKDOWN = `# 我的简历
 
 ## 使用提示
-- 上传 PDF 简历后，ResumeMd 会先提取文本并整理成 Markdown。
+- 上传 PDF 简历后，ResumeM 会先提取文本并整理成 Markdown。
 - 填写 DeepSeek key 后，可以让 AI 优化字段名称和 Markdown 结构。
 - 搜索如“实习”“家庭住址”“电话”等关键词，可以快速定位内容。
 `;
@@ -36,12 +36,12 @@
 
   const app = document.createElement("div");
   app.innerHTML = `
-    <button class="launcher" title="打开 ResumeMd" aria-label="打开 ResumeMd">MD</button>
-    <section class="panel" hidden aria-label="ResumeMd 悬浮窗">
+    <button class="launcher" title="打开 ResumeM" aria-label="打开 ResumeM">MD</button>
+    <section class="panel" hidden aria-label="ResumeM 悬浮窗">
       <header class="topbar">
         <div class="brand">
-          <strong>ResumeMd</strong>
-          <span>秋招网申 Markdown 简历助手</span>
+          <strong>ResumeM</strong>
+          <span>网申 Markdown 简历助手</span>
         </div>
         <div class="actions">
           <button class="icon-btn" data-action="settings" title="设置" aria-label="设置">⚙</button>
@@ -55,7 +55,7 @@
           <button class="btn" data-action="save-key">保存 key</button>
           <button class="btn" data-action="clear-key">清除 key</button>
         </div>
-        <div class="hint">key 只保存在本机 Chrome storage.local 中。ResumeMd 不内置公共 key。</div>
+        <div class="hint">key 只保存在本机 Chrome storage.local 中。ResumeM 不内置公共 key。</div>
       </div>
 
       <div class="toolbar">
@@ -494,7 +494,7 @@
   }
 
   async function clearAllData() {
-    const confirmed = window.confirm("确认清空 ResumeMd 的 Markdown 内容和 DeepSeek key？");
+    const confirmed = window.confirm("确认清空 ResumeM 的 Markdown 内容和 DeepSeek key？");
     if (!confirmed) return;
 
     state.markdown = DEFAULT_MARKDOWN;

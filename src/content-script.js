@@ -594,18 +594,20 @@ ${markdown}`
     matchCount.textContent = `${matches.length} 个匹配`;
 
     if (matches[0]) {
-      scrollEditorToIndex(matches[0].index);
+      scrollEditorToFirstMatch();
       searchInput.focus();
     }
 
     syncScroll();
   }
 
-  function scrollEditorToIndex(index) {
-    const beforeMatch = editor.value.slice(0, index);
-    const lineIndex = beforeMatch.split("\n").length - 1;
-    const lineHeight = Number.parseFloat(getComputedStyle(editor).lineHeight) || 22;
-    editor.scrollTop = Math.max(0, lineIndex * lineHeight - editor.clientHeight * 0.35);
+  function scrollEditorToFirstMatch() {
+    const firstMatch = backdrop.querySelector("mark");
+    if (!firstMatch) return;
+
+    const targetTop = Math.max(0, firstMatch.offsetTop - editor.clientHeight * 0.35);
+    editor.scrollTop = targetTop;
+    backdrop.scrollTop = targetTop;
   }
 
   function syncScroll() {

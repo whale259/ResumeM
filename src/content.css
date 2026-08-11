@@ -284,6 +284,30 @@ mark.active-match {
   gap: 8px;
 }
 
+.settings-model {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--rm-muted);
+  font-size: 12px;
+}
+
+.model-select {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid var(--rm-line);
+  border-radius: 6px;
+  background: #171820;
+  color: var(--rm-ink);
+  padding: 0 10px;
+  outline: none;
+}
+
+.model-select:focus {
+  border-color: var(--rm-accent);
+}
+
 .statusbar {
   min-height: 36px;
   justify-content: space-between;

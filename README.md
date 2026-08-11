@@ -20,6 +20,7 @@ search, edit, and copy resume information while filling online applications.
 - Markdown file import with overwrite / append / cancel choices.
 - PDF.js-based text extraction with bundled local assets.
 - DeepSeek key setting inside the panel.
+- DeepSeek model selection between `deepseek-v4-flash` and `deepseek-v4-pro`.
 - AI Markdown optimization using the user's own DeepSeek key.
 - Keyword search with inline highlights and automatic scroll.
 - Copy all Markdown.

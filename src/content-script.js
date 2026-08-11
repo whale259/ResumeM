@@ -5,8 +5,10 @@
   const STORAGE_KEYS = {
     markdown: "resumemd.markdown",
     deepseekKey: "resumemd.deepseekKey",
+    deepseekModel: "resumemd.deepseekModel",
     panelOpen: "resumemd.panelOpen"
   };
+  const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash";
 
   const DEFAULT_MARKDOWN = `# 我的简历
 
@@ -19,6 +21,7 @@
   const state = {
     markdown: DEFAULT_MARKDOWN,
     deepseekKey: "",
+    deepseekModel: DEFAULT_DEEPSEEK_MODEL,
     panelOpen: false,
     pendingImport: "",
     pendingImportSource: "",
@@ -55,6 +58,13 @@
           <input class="key-input" type="password" autocomplete="off" placeholder="DeepSeek API key" />
           <button class="btn" data-action="save-key">保存 key</button>
           <button class="btn" data-action="clear-key">清除 key</button>
+        </div>
+        <div class="settings-model">
+          <span>模型</span>
+          <select class="model-select" aria-label="DeepSeek 模型">
+            <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+            <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+          </select>
         </div>
         <div class="hint">key 只保存在本机 Chrome storage.local 中。ResumeM 不内置公共 key。</div>
       </div>
@@ -125,6 +135,7 @@
   const pdfInput = $(".pdf-input");
   const mdInput = $(".md-input");
   const keyInput = $(".key-input");
+  const modelSelect = $(".model-select");
   const modal = $(".modal");
   const overflowRow = $(".overflow-row");
   const moreButton = $('[data-action="more"]');
@@ -141,10 +152,12 @@
     const stored = await chrome.storage.local.get(Object.values(STORAGE_KEYS));
     state.markdown = stored[STORAGE_KEYS.markdown] || DEFAULT_MARKDOWN;
     state.deepseekKey = stored[STORAGE_KEYS.deepseekKey] || "";
+    state.deepseekModel = stored[STORAGE_KEYS.deepseekModel] || DEFAULT_DEEPSEEK_MODEL;
     state.panelOpen = Boolean(stored[STORAGE_KEYS.panelOpen]);
 
     editor.value = state.markdown;
     keyInput.value = state.deepseekKey;
+    modelSelect.value = state.deepseekModel;
     panel.hidden = !state.panelOpen;
     renderHighlights();
     bindEvents();
@@ -158,6 +171,7 @@
     searchInput.addEventListener("input", handleSearchInput);
     pdfInput.addEventListener("change", handlePdfUpload);
     mdInput.addEventListener("change", handleMarkdownUpload);
+    modelSelect.addEventListener("change", saveDeepSeekModel);
   }
 
   function togglePanel(forceOpen) {
@@ -497,9 +511,19 @@
 
   async function saveDeepSeekKey() {
     state.deepseekKey = keyInput.value.trim();
-    await chrome.storage.local.set({ [STORAGE_KEYS.deepseekKey]: state.deepseekKey });
+    state.deepseekModel = modelSelect.value;
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.deepseekKey]: state.deepseekKey,
+      [STORAGE_KEYS.deepseekModel]: state.deepseekModel
+    });
     settings.hidden = true;
-    setStatus(state.deepseekKey ? "DeepSeek key 已保存" : "DeepSeek key 为空");
+    setStatus(state.deepseekKey ? `DeepSeek key 已保存，模型：${state.deepseekModel}` : "DeepSeek key 为空");
+  }
+
+  async function saveDeepSeekModel() {
+    state.deepseekModel = modelSelect.value;
+    await chrome.storage.local.set({ [STORAGE_KEYS.deepseekModel]: state.deepseekModel });
+    setStatus(`DeepSeek 模型已切换为 ${state.deepseekModel}`);
   }
 
   async function clearDeepSeekKey() {
@@ -546,6 +570,7 @@
 
   async function optimizeWithDeepSeek() {
     const key = keyInput.value.trim() || state.deepseekKey;
+    const model = modelSelect.value || state.deepseekModel || DEFAULT_DEEPSEEK_MODEL;
     if (!key) {
       settings.hidden = false;
       keyInput.focus();
@@ -559,24 +584,26 @@
     }
 
     try {
-      setStatus("正在请求 DeepSeek 整理...");
-      const optimized = await requestDeepSeekOptimization(key, editor.value);
+      setStatus(`正在请求 DeepSeek 整理：${model}`);
+      const optimized = await requestDeepSeekOptimization(key, editor.value, model);
       editor.value = optimized.trim() + "\n";
       state.markdown = editor.value;
       state.deepseekKey = key;
+      state.deepseekModel = model;
       await chrome.storage.local.set({
         [STORAGE_KEYS.markdown]: state.markdown,
-        [STORAGE_KEYS.deepseekKey]: key
+        [STORAGE_KEYS.deepseekKey]: key,
+        [STORAGE_KEYS.deepseekModel]: model
       });
       renderHighlights();
-      setStatus("AI 整理完成");
+      setStatus(`AI 整理完成：${model}`);
     } catch (error) {
       console.error(error);
       setStatus(`AI 整理失败：${error.message || "请稍后重试"}`);
     }
   }
 
-  async function requestDeepSeekOptimization(key, markdown) {
+  async function requestDeepSeekOptimization(key, markdown, model) {
     const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
@@ -584,7 +611,7 @@
         Authorization: `Bearer ${key}`
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model,
         temperature: 0.2,
         messages: [
           {

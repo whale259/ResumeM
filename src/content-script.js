@@ -541,12 +541,18 @@ ${markdown}`
     matchCount.textContent = `${matches.length} 个匹配`;
 
     if (matches[0]) {
-      const start = matches[0].index;
-      editor.focus();
-      editor.setSelectionRange(start, start + query.length);
+      scrollEditorToIndex(matches[0].index);
+      searchInput.focus();
     }
 
     syncScroll();
+  }
+
+  function scrollEditorToIndex(index) {
+    const beforeMatch = editor.value.slice(0, index);
+    const lineIndex = beforeMatch.split("\n").length - 1;
+    const lineHeight = Number.parseFloat(getComputedStyle(editor).lineHeight) || 22;
+    editor.scrollTop = Math.max(0, lineIndex * lineHeight - editor.clientHeight * 0.35);
   }
 
   function syncScroll() {

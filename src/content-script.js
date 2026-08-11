@@ -21,6 +21,7 @@
     deepseekKey: "",
     panelOpen: false,
     pendingImport: "",
+    pendingImportSource: "",
     lastSavedAt: null,
     saveTimer: null
   };
@@ -61,6 +62,10 @@
         <label class="file-btn">
           上传 PDF
           <input class="pdf-input" type="file" accept="application/pdf,.pdf" hidden />
+        </label>
+        <label class="file-btn">
+          导入 MD
+          <input class="md-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
         </label>
         <button class="btn primary" data-action="optimize">AI 整理</button>
         <button class="btn" data-action="copy">复制全部</button>
@@ -107,6 +112,7 @@
   const matchCount = $(".match-count");
   const searchInput = $(".search-input");
   const pdfInput = $(".pdf-input");
+  const mdInput = $(".md-input");
   const keyInput = $(".key-input");
   const modal = $(".modal");
 
@@ -138,6 +144,7 @@
     editor.addEventListener("scroll", syncScroll);
     searchInput.addEventListener("input", renderHighlights);
     pdfInput.addEventListener("change", handlePdfUpload);
+    mdInput.addEventListener("change", handleMarkdownUpload);
   }
 
   function togglePanel(forceOpen) {
@@ -191,6 +198,7 @@
       setStatus("正在解析 PDF...");
       const markdown = await extractPdfAsMarkdown(file);
       state.pendingImport = markdown;
+      state.pendingImportSource = "PDF";
       if (editor.value.trim()) {
         modal.hidden = false;
       } else {
@@ -201,6 +209,28 @@
       setStatus(`PDF 解析失败：${error.message || "未知错误"}`);
     } finally {
       pdfInput.value = "";
+    }
+  }
+
+  async function handleMarkdownUpload() {
+    const file = mdInput.files?.[0];
+    if (!file) return;
+
+    try {
+      setStatus("正在读取 Markdown...");
+      const markdown = await file.text();
+      state.pendingImport = markdown;
+      state.pendingImportSource = "Markdown";
+      if (editor.value.trim()) {
+        modal.hidden = false;
+      } else {
+        await applyImportedMarkdown("overwrite");
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus(`Markdown 导入失败：${error.message || "未知错误"}`);
+    } finally {
+      mdInput.value = "";
     }
   }
 
@@ -387,6 +417,7 @@
     modal.hidden = true;
     if (action === "cancel") {
       state.pendingImport = "";
+      state.pendingImportSource = "";
       setStatus("已取消导入");
       return;
     }
@@ -405,15 +436,17 @@
     }
 
     state.pendingImport = "";
+    const source = state.pendingImportSource || "内容";
+    state.pendingImportSource = "";
     state.markdown = editor.value;
     await chrome.storage.local.set({ [STORAGE_KEYS.markdown]: state.markdown });
     renderHighlights();
     setStatus(
-      state.deepseekKey
+      state.deepseekKey && source === "PDF"
         ? "PDF 解析完成，可点 AI 整理提升结构"
         : action === "append"
-          ? "已追加 PDF 解析内容"
-          : "已导入 PDF 解析内容"
+          ? `已追加 ${source} 内容`
+          : `已导入 ${source} 内容`
     );
   }
 

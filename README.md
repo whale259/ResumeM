@@ -17,6 +17,7 @@ search, edit, and copy resume information while filling online applications.
 - Editable Markdown resume workspace.
 - Local persistence through `chrome.storage.local`.
 - PDF upload with overwrite / append / cancel choices.
+- Markdown file import with overwrite / append / cancel choices.
 - PDF.js-based text extraction with bundled local assets.
 - DeepSeek key setting inside the panel.
 - AI Markdown optimization using the user's own DeepSeek key.

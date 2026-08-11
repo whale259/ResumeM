@@ -1,4 +1,4 @@
-# ResumeMd
+# ResumeM
 
 ResumeMd is a local Chrome extension prototype for autumn recruitment application
 forms. It injects a dark floating Markdown panel into web pages so you can keep,

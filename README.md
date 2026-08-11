@@ -24,7 +24,7 @@ search, edit, and copy resume information while filling online applications.
 - Keyword search with inline highlights and automatic scroll.
 - Copy all Markdown.
 - Export the edited Markdown as a `.md` file.
-- Clear DeepSeek key and clear all local data.
+- Clear DeepSeek key separately, or clear only the saved Markdown content.
 
 ## Notes
 

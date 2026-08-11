@@ -510,18 +510,16 @@
   }
 
   async function clearAllData() {
-    const confirmed = window.confirm("确认清空 ResumeM 的 Markdown 内容和 DeepSeek key？");
+    const confirmed = window.confirm("确认清空 ResumeM 的 Markdown 内容？DeepSeek key 会保留。");
     if (!confirmed) return;
 
     state.markdown = DEFAULT_MARKDOWN;
-    state.deepseekKey = "";
     editor.value = state.markdown;
-    keyInput.value = "";
     searchInput.value = "";
     state.activeMatchIndex = 0;
-    await chrome.storage.local.remove(Object.values(STORAGE_KEYS));
+    await chrome.storage.local.remove(STORAGE_KEYS.markdown);
     renderHighlights();
-    setStatus("本地数据已清空");
+    setStatus("Markdown 内容已清空，DeepSeek key 已保留");
   }
 
   async function copyMarkdown() {

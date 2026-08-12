@@ -232,12 +232,12 @@
   function handleEditorInput() {
     state.markdown = editor.value;
     scheduleSaveMarkdown();
-    renderHighlights();
+    renderHighlights({ scrollToMatch: false, preserveFocus: true });
   }
 
   function handleSearchInput() {
     state.activeMatchIndex = 0;
-    renderHighlights();
+    renderHighlights({ scrollToMatch: true, preserveFocus: true });
   }
 
   function scheduleSaveMarkdown() {
@@ -647,7 +647,8 @@ ${markdown}`
     return content;
   }
 
-  function renderHighlights() {
+  function renderHighlights(options = {}) {
+    const { scrollToMatch = false, preserveFocus = false } = options;
     const text = editor.value;
     const query = searchInput.value.trim();
     const escapedText = escapeHtml(text);
@@ -678,9 +679,9 @@ ${markdown}`
       ? `${state.activeMatchIndex + 1} / ${matches.length} results`
       : "0 / 0 results";
 
-    if (matches[0]) {
+    if (matches[0] && scrollToMatch) {
       scrollEditorToActiveMatch();
-      searchInput.focus();
+      if (preserveFocus) searchInput.focus();
     }
 
     syncScroll();
@@ -694,7 +695,7 @@ ${markdown}`
     if (!matches.length) return;
 
     state.activeMatchIndex = (state.activeMatchIndex + direction + matches.length) % matches.length;
-    renderHighlights();
+    renderHighlights({ scrollToMatch: true, preserveFocus: true });
     searchInput.focus();
   }
 

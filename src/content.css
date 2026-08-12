@@ -245,12 +245,20 @@ textarea {
   pointer-events: none;
 }
 
+.backdrop.is-hidden {
+  visibility: hidden;
+}
+
 .editor {
   resize: none;
   background: transparent;
   color: transparent;
   caret-color: var(--rm-ink);
   outline: none;
+}
+
+.editor.is-editing {
+  color: var(--rm-ink);
 }
 
 .editor::selection {

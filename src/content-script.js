@@ -168,6 +168,8 @@
     shadow.addEventListener("click", handleActionClick);
     editor.addEventListener("input", handleEditorInput);
     editor.addEventListener("scroll", syncScroll);
+    editor.addEventListener("focus", () => setEditingMode(true));
+    editor.addEventListener("blur", () => setEditingMode(false));
     searchInput.addEventListener("input", handleSearchInput);
     pdfInput.addEventListener("change", handlePdfUpload);
     mdInput.addEventListener("change", handleMarkdownUpload);
@@ -233,6 +235,11 @@
     state.markdown = editor.value;
     scheduleSaveMarkdown();
     renderHighlights({ scrollToMatch: false, preserveFocus: true });
+  }
+
+  function setEditingMode(isEditing) {
+    editor.classList.toggle("is-editing", isEditing);
+    backdrop.classList.toggle("is-hidden", isEditing);
   }
 
   function handleSearchInput() {

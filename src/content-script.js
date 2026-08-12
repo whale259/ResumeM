@@ -81,10 +81,11 @@
           </label>
           <button class="btn primary" data-action="optimize">AI 整理</button>
           <button class="btn" data-action="export">导出 MD</button>
-          <button class="btn" data-action="copy">复制全部</button>
+          <button class="btn" data-action="refresh">刷新</button>
           <button class="menu-toggle" data-action="more" aria-label="展开更多操作" aria-expanded="false">▾</button>
         </div>
         <div class="overflow-row" hidden>
+          <button class="btn" data-action="copy">复制全部</button>
           <button class="btn danger" data-action="clear-all">清空数据</button>
         </div>
         <div class="search">
@@ -212,6 +213,7 @@
     if (action === "clear-key") await clearDeepSeekKey();
     if (action === "copy") await copyMarkdown();
     if (action === "export") exportMarkdown();
+    if (action === "refresh") await refreshFromStorage();
     if (action === "clear-all") await clearAllData();
     if (action === "optimize") await optimizeWithDeepSeek();
   }
@@ -538,6 +540,20 @@
     keyInput.value = "";
     await chrome.storage.local.remove(STORAGE_KEYS.deepseekKey);
     setStatus("DeepSeek key 已清除");
+  }
+
+  async function refreshFromStorage() {
+    const stored = await chrome.storage.local.get(Object.values(STORAGE_KEYS));
+    state.markdown = stored[STORAGE_KEYS.markdown] || DEFAULT_MARKDOWN;
+    state.deepseekKey = stored[STORAGE_KEYS.deepseekKey] || "";
+    state.deepseekModel = stored[STORAGE_KEYS.deepseekModel] || DEFAULT_DEEPSEEK_MODEL;
+    state.activeMatchIndex = 0;
+
+    editor.value = state.markdown;
+    keyInput.value = state.deepseekKey;
+    modelSelect.value = state.deepseekModel;
+    renderHighlights({ scrollToMatch: Boolean(searchInput.value.trim()), preserveFocus: false });
+    setStatus("已刷新同步最新 Markdown 内容");
   }
 
   async function clearAllData() {

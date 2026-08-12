@@ -560,19 +560,32 @@
 
   function exportMarkdown() {
     const markdown = editor.value || "";
-    const date = new Date().toISOString().slice(0, 10);
+    const timestamp = formatExportTimestamp(new Date());
+    const filename = `resumem-${timestamp}.md`;
     const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `resumemd-${date}.md`;
+    link.download = filename;
     link.style.display = "none";
     document.documentElement.append(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setStatus(`已导出 resumemd-${date}.md`);
+    setStatus(`已导出 ${filename}`);
+  }
+
+  function formatExportTimestamp(date) {
+    const parts = [
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes()
+    ];
+
+    return parts.map((part) => String(part).padStart(2, "0")).join("-");
   }
 
   async function optimizeWithDeepSeek() {

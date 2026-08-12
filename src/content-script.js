@@ -598,7 +598,8 @@
       date.getMonth() + 1,
       date.getDate(),
       date.getHours(),
-      date.getMinutes()
+      date.getMinutes(),
+      date.getSeconds()
     ];
 
     return parts.map((part) => String(part).padStart(2, "0")).join("-");

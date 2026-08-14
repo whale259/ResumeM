@@ -6,9 +6,13 @@
     markdown: "resumemd.markdown",
     deepseekKey: "resumemd.deepseekKey",
     deepseekModel: "resumemd.deepseekModel",
-    panelOpen: "resumemd.panelOpen"
+    panelOpen: "resumemd.panelOpen",
+    panelGeometry: "resumemd.panelGeometry"
   };
   const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash";
+  const PANEL_MIN_WIDTH = 360;
+  const PANEL_MIN_HEIGHT = 360;
+  const PANEL_VIEWPORT_MARGIN = 8;
 
   const DEFAULT_MARKDOWN = `# 我的简历
 
@@ -27,7 +31,9 @@
     pendingImportSource: "",
     activeMatchIndex: 0,
     lastSavedAt: null,
-    saveTimer: null
+    saveTimer: null,
+    panelGeometry: null,
+    panelInteraction: null
   };
 
   const rootHost = document.createElement("resume-md-root");
@@ -106,6 +112,7 @@
           <span class="match-count">0 / 0 results</span>
         </div>
       </footer>
+      <button class="resize-handle" type="button" aria-label="Resize ResumeM panel" title="Resize ResumeM panel"></button>
     </section>
 
     <div class="modal" hidden>
@@ -140,6 +147,8 @@
   const modal = $(".modal");
   const overflowRow = $(".overflow-row");
   const moreButton = $('[data-action="more"]');
+  const topbar = $(".topbar");
+  const resizeHandle = $(".resize-handle");
 
   init();
 
@@ -155,11 +164,15 @@
     state.deepseekKey = stored[STORAGE_KEYS.deepseekKey] || "";
     state.deepseekModel = stored[STORAGE_KEYS.deepseekModel] || DEFAULT_DEEPSEEK_MODEL;
     state.panelOpen = Boolean(stored[STORAGE_KEYS.panelOpen]);
+    state.panelGeometry = normalizePanelGeometry(stored[STORAGE_KEYS.panelGeometry]);
 
     editor.value = state.markdown;
     keyInput.value = state.deepseekKey;
     modelSelect.value = state.deepseekModel;
     panel.hidden = !state.panelOpen;
+    if (state.panelOpen) {
+      window.requestAnimationFrame(applyPanelGeometry);
+    }
     renderHighlights();
     bindEvents();
   }
@@ -175,13 +188,155 @@
     pdfInput.addEventListener("change", handlePdfUpload);
     mdInput.addEventListener("change", handleMarkdownUpload);
     modelSelect.addEventListener("change", saveDeepSeekModel);
+    topbar.addEventListener("pointerdown", startPanelDrag);
+    resizeHandle.addEventListener("pointerdown", startPanelResize);
+    window.addEventListener("resize", keepPanelInViewport);
   }
 
   function togglePanel(forceOpen) {
     const nextOpen = typeof forceOpen === "boolean" ? forceOpen : panel.hidden;
     panel.hidden = !nextOpen;
     chrome.storage.local.set({ [STORAGE_KEYS.panelOpen]: nextOpen });
-    if (nextOpen) editor.focus();
+    if (nextOpen) {
+      applyPanelGeometry();
+      editor.focus();
+    }
+  }
+
+  function startPanelDrag(event) {
+    if (event.button !== 0 || panel.hidden || event.target.closest("button, input, select, label")) return;
+
+    const geometry = getPanelGeometryFromDom();
+    state.panelInteraction = {
+      type: "drag",
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: geometry.left,
+      startTop: geometry.top,
+      width: geometry.width,
+      height: geometry.height
+    };
+    beginPanelInteraction(event);
+  }
+
+  function startPanelResize(event) {
+    if (event.button !== 0 || panel.hidden) return;
+
+    const geometry = getPanelGeometryFromDom();
+    state.panelInteraction = {
+      type: "resize",
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: geometry.left,
+      startTop: geometry.top,
+      width: geometry.width,
+      height: geometry.height
+    };
+    beginPanelInteraction(event);
+  }
+
+  function beginPanelInteraction(event) {
+    panel.classList.add("is-moving");
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    window.addEventListener("pointermove", handlePanelPointerMove);
+    window.addEventListener("pointerup", endPanelInteraction, { once: true });
+    window.addEventListener("pointercancel", endPanelInteraction, { once: true });
+  }
+
+  function handlePanelPointerMove(event) {
+    const interaction = state.panelInteraction;
+    if (!interaction) return;
+
+    const deltaX = event.clientX - interaction.startX;
+    const deltaY = event.clientY - interaction.startY;
+    const nextGeometry =
+      interaction.type === "drag"
+        ? {
+            left: interaction.startLeft + deltaX,
+            top: interaction.startTop + deltaY,
+            width: interaction.width,
+            height: interaction.height
+          }
+        : {
+            left: interaction.startLeft,
+            top: interaction.startTop,
+            width: interaction.width + deltaX,
+            height: interaction.height + deltaY
+          };
+
+    state.panelGeometry = normalizePanelGeometry(nextGeometry);
+    applyPanelGeometry();
+  }
+
+  async function endPanelInteraction() {
+    window.removeEventListener("pointermove", handlePanelPointerMove);
+    panel.classList.remove("is-moving");
+    state.panelInteraction = null;
+    state.panelGeometry = normalizePanelGeometry(getPanelGeometryFromDom());
+    await chrome.storage.local.set({ [STORAGE_KEYS.panelGeometry]: state.panelGeometry });
+  }
+
+  function keepPanelInViewport() {
+    if (panel.hidden) return;
+    state.panelGeometry = normalizePanelGeometry(getPanelGeometryFromDom());
+    applyPanelGeometry();
+    chrome.storage.local.set({ [STORAGE_KEYS.panelGeometry]: state.panelGeometry });
+  }
+
+  function applyPanelGeometry() {
+    state.panelGeometry = normalizePanelGeometry(state.panelGeometry || getPanelGeometryFromDom());
+    if (!state.panelGeometry) return;
+
+    const { left, top, width, height } = state.panelGeometry;
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+    panel.style.width = `${width}px`;
+    panel.style.height = `${height}px`;
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+    syncScroll();
+  }
+
+  function getPanelGeometryFromDom() {
+    const rect = panel.getBoundingClientRect();
+    const width = rect.width || 460;
+    const height = rect.height || 560;
+
+    return {
+      left: rect.left || Math.max(PANEL_VIEWPORT_MARGIN, window.innerWidth - 22 - width),
+      top: rect.top || Math.max(PANEL_VIEWPORT_MARGIN, window.innerHeight - 84 - height),
+      width,
+      height
+    };
+  }
+
+  function normalizePanelGeometry(geometry) {
+    if (!geometry || typeof geometry !== "object") return null;
+
+    const maxWidth = Math.max(240, window.innerWidth - PANEL_VIEWPORT_MARGIN * 2);
+    const maxHeight = Math.max(280, window.innerHeight - PANEL_VIEWPORT_MARGIN * 2);
+    const minWidth = Math.min(PANEL_MIN_WIDTH, maxWidth);
+    const minHeight = Math.min(PANEL_MIN_HEIGHT, maxHeight);
+    const width = clamp(Number(geometry.width) || 460, minWidth, maxWidth);
+    const height = clamp(Number(geometry.height) || 560, minHeight, maxHeight);
+    const left = clamp(
+      Number(geometry.left) || PANEL_VIEWPORT_MARGIN,
+      PANEL_VIEWPORT_MARGIN,
+      window.innerWidth - width - PANEL_VIEWPORT_MARGIN
+    );
+    const top = clamp(
+      Number(geometry.top) || PANEL_VIEWPORT_MARGIN,
+      PANEL_VIEWPORT_MARGIN,
+      window.innerHeight - height - PANEL_VIEWPORT_MARGIN
+    );
+
+    return { left, top, width, height };
+  }
+
+  function clamp(value, min, max) {
+    if (max < min) return min;
+    return Math.min(Math.max(value, min), max);
   }
 
   async function handleActionClick(event) {

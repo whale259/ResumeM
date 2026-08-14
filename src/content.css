@@ -338,23 +338,99 @@ mark.active-match {
 
 .resize-handle {
   position: absolute;
-  right: 0;
-  bottom: 0;
   z-index: 2;
   width: 18px;
   height: 18px;
   border: 0;
-  border-radius: 0 0 8px;
-  background:
-    linear-gradient(135deg, transparent 0 46%, rgba(255, 255, 255, 0.28) 46% 54%, transparent 54%),
-    linear-gradient(135deg, transparent 0 62%, rgba(255, 255, 255, 0.18) 62% 70%, transparent 70%);
-  cursor: nwse-resize;
+  background: transparent;
   opacity: 0.78;
   touch-action: none;
 }
 
+.resize-handle::before,
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 1px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
+}
+
 .resize-handle:hover {
   opacity: 1;
+}
+
+.resize-handle-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle-se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-nw::before,
+.resize-handle-nw::after {
+  top: 5px;
+  left: 4px;
+  transform-origin: left center;
+}
+
+.resize-handle-ne::before,
+.resize-handle-ne::after {
+  top: 5px;
+  right: 4px;
+  transform-origin: right center;
+}
+
+.resize-handle-sw::before,
+.resize-handle-sw::after {
+  bottom: 5px;
+  left: 4px;
+  transform-origin: left center;
+}
+
+.resize-handle-se::before,
+.resize-handle-se::after {
+  right: 4px;
+  bottom: 5px;
+  transform-origin: right center;
+}
+
+.resize-handle-nw::before,
+.resize-handle-se::before {
+  transform: rotate(45deg);
+}
+
+.resize-handle-nw::after,
+.resize-handle-se::after {
+  transform: rotate(45deg) translateY(4px);
+}
+
+.resize-handle-ne::before,
+.resize-handle-sw::before {
+  transform: rotate(-45deg);
+}
+
+.resize-handle-ne::after,
+.resize-handle-sw::after {
+  transform: rotate(-45deg) translateY(4px);
 }
 
 .search-nav {

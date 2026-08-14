@@ -112,7 +112,10 @@
           <span class="match-count">0 / 0 results</span>
         </div>
       </footer>
-      <button class="resize-handle" type="button" aria-label="Resize ResumeM panel" title="Resize ResumeM panel"></button>
+      <button class="resize-handle resize-handle-nw" type="button" data-resize-corner="nw" aria-label="Resize ResumeM panel from top left" title="Resize ResumeM panel"></button>
+      <button class="resize-handle resize-handle-ne" type="button" data-resize-corner="ne" aria-label="Resize ResumeM panel from top right" title="Resize ResumeM panel"></button>
+      <button class="resize-handle resize-handle-sw" type="button" data-resize-corner="sw" aria-label="Resize ResumeM panel from bottom left" title="Resize ResumeM panel"></button>
+      <button class="resize-handle resize-handle-se" type="button" data-resize-corner="se" aria-label="Resize ResumeM panel from bottom right" title="Resize ResumeM panel"></button>
     </section>
 
     <div class="modal" hidden>
@@ -148,7 +151,7 @@
   const overflowRow = $(".overflow-row");
   const moreButton = $('[data-action="more"]');
   const topbar = $(".topbar");
-  const resizeHandle = $(".resize-handle");
+  const resizeHandles = shadow.querySelectorAll(".resize-handle");
 
   init();
 
@@ -189,7 +192,7 @@
     mdInput.addEventListener("change", handleMarkdownUpload);
     modelSelect.addEventListener("change", saveDeepSeekModel);
     topbar.addEventListener("pointerdown", startPanelDrag);
-    resizeHandle.addEventListener("pointerdown", startPanelResize);
+    resizeHandles.forEach((handle) => handle.addEventListener("pointerdown", startPanelResize));
     window.addEventListener("resize", keepPanelInViewport);
   }
 
@@ -225,6 +228,7 @@
     const geometry = getPanelGeometryFromDom();
     state.panelInteraction = {
       type: "resize",
+      corner: event.currentTarget.dataset.resizeCorner || "se",
       startX: event.clientX,
       startY: event.clientY,
       startLeft: geometry.left,
@@ -258,15 +262,33 @@
             width: interaction.width,
             height: interaction.height
           }
-        : {
-            left: interaction.startLeft,
-            top: interaction.startTop,
-            width: interaction.width + deltaX,
-            height: interaction.height + deltaY
-          };
+        : getResizedPanelGeometry(interaction, deltaX, deltaY);
 
     state.panelGeometry = normalizePanelGeometry(nextGeometry);
     applyPanelGeometry();
+  }
+
+  function getResizedPanelGeometry(interaction, deltaX, deltaY) {
+    const corner = interaction.corner || "se";
+    const resizesFromLeft = corner.includes("w");
+    const resizesFromTop = corner.includes("n");
+    const maxWidth = Math.max(240, window.innerWidth - PANEL_VIEWPORT_MARGIN * 2);
+    const maxHeight = Math.max(280, window.innerHeight - PANEL_VIEWPORT_MARGIN * 2);
+    const minWidth = Math.min(PANEL_MIN_WIDTH, maxWidth);
+    const minHeight = Math.min(PANEL_MIN_HEIGHT, maxHeight);
+    const widthDelta = resizesFromLeft ? -deltaX : deltaX;
+    const heightDelta = resizesFromTop ? -deltaY : deltaY;
+    const width = clamp(interaction.width + widthDelta, minWidth, maxWidth);
+    const height = clamp(interaction.height + heightDelta, minHeight, maxHeight);
+    const right = interaction.startLeft + interaction.width;
+    const bottom = interaction.startTop + interaction.height;
+
+    return {
+      left: resizesFromLeft ? right - width : interaction.startLeft,
+      top: resizesFromTop ? bottom - height : interaction.startTop,
+      width,
+      height
+    };
   }
 
   async function endPanelInteraction() {

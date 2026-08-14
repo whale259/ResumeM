@@ -7,7 +7,7 @@ Make the ResumeM floating panel movable and resizable so it does not block onlin
 ## Interaction
 
 - Drag from the top bar to move the panel.
-- Resize from a small bottom-right handle.
+- Resize from small handles on all four corners.
 - Keep the panel within the visible viewport.
 - Persist width, height, left, and top in `chrome.storage.local`.
 - Restore saved geometry when the panel opens again.
